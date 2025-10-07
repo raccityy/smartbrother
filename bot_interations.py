@@ -1,7 +1,7 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot_instance import bot
 
-group_chat_id = -4833704797  # Replace with your actual group chat ID
+group_chat_id = -1003001274091  # Replace with your actual group chat ID
 
 # Store mapping from group message_id to user chat_id
 reply_targets = {}

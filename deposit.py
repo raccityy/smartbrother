@@ -5,16 +5,17 @@ def handle_deposit(call):
     chat_id = call.message.chat.id
     image_url = 'https://raw.githubusercontent.com/raccityy/raccityy.github.io/refs/heads/main/deposit.jpg'
     text = (
-        "💰KINDLY CLICK ON THE ADD BOTTON TO GENERATE YOUR WALLET.\n"
-        "💡NOTE THAT ALL YOUR FUNDS ARE SAVE WITH US"
+        "💰 Wallet Management Center\n\n"
+        "💡 Click 'Add Funds' to generate your secure wallet address\n"
+        "🔒 All your funds are safely stored with us"
     )
     markup = InlineKeyboardMarkup(row_width=2)
     # First row: one button
-    markup.add(InlineKeyboardButton("ADD", callback_data="deposit_add"))
+    markup.add(InlineKeyboardButton("💳 Add Funds", callback_data="deposit_add"))
     # Second row: two buttons
     markup.add(
-        InlineKeyboardButton("WITHDRAW", callback_data="deposit_withdraw"),
-        InlineKeyboardButton("SOL BALANCE", callback_data="deposit_balance")
+        InlineKeyboardButton("💸 Withdraw", callback_data="deposit_withdraw"),
+        InlineKeyboardButton("📊 Balance", callback_data="deposit_balance")
     )
     # Third row: back and menu buttons
     markup.add(

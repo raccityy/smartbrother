@@ -5,18 +5,22 @@ from ca_input_handler import send_ca_prompt
 
 def handle_premium(call):
     chat_id = call.message.chat.id
-    image_url = 'https://raw.githubusercontent.com/raccityy/raccityy.github.io/refs/heads/main/premium.jpg'
+    image_url = 'https://raw.githubusercontent.com/raccityy/smartbrother/545c020be373115fdc499b55c1cc34f8c03ded4c/premuim.jpg'
     short_caption = "🟢Discover the Power of Trending!"
-    text = (
-        "Ready to boost your project's visibility? Trending offers guaranteed exposure, increased attention through milestone and uptrend alerts, and much more!\n\n"
-        "🟢A paid boost guarantees you a spot in our daily livestream (AMA)!\n\n"
-        "➔ Please choose SOL Trending or Pump Fun Trending to start:"
-    )
+    text = """
+   Discover the Power of Trending!
+
+  Ready to boost your project's visibility? Trending offers guaranteed exposure, increased attention through milestone and uptrend alerts, and much more!
+
+  🟢 A paid boost guarantees you a spot in our daily livestream (AMA)!
+
+  ➔ Please choose your Chain to start:
+    """
     markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(InlineKeyboardButton("SOL TRENDING", callback_data="premium_sol"))
+    markup.add(InlineKeyboardButton("☀️ SOL TRENDING", callback_data="premium_sol"))
     markup.add(
-        InlineKeyboardButton("ETH TRENDING", callback_data="premium_eth"),
-        InlineKeyboardButton("PUMPFUN TRENDING", callback_data="premium_pumpfun")
+        InlineKeyboardButton("💎 ETH TRENDING", callback_data="premium_eth"),
+        InlineKeyboardButton("🚀 PUMPFUN TRENDING", callback_data="premium_pumpfun")
     )
     markup.add(
         InlineKeyboardButton("🔙 Back", callback_data="premium_back"),
@@ -95,10 +99,13 @@ def handle_sol_trending_callbacks(call):
 
 def handle_eth_trending(call):
     chat_id = call.message.chat.id
+    image_url = 'https://github.com/raccityy/smartbrother/raw/main/eth.jpg'
     text = (
-        "🔵ETH TREND\n"
-        "Kindly chose the trend you wish to pump on.\n\n"
-        "_____________________"
+        "💎 ETH Trending - Premium Blockchain Promotion\n\n"
+        "🚀 Boost your Ethereum token with our premium trending services!\n"
+        "📈 Get maximum visibility across the ETH ecosystem\n"
+        "⚡ Choose your trending package below:\n\n"
+        # "_____________________"
     )
     markup = InlineKeyboardMarkup(row_width=2)
     # First row: 2 buttons
@@ -115,7 +122,10 @@ def handle_eth_trending(call):
         InlineKeyboardButton("🔙 Back", callback_data="eth_back"),
         InlineKeyboardButton("🔝 Main Menu", callback_data="eth_mainmenu")
     )
-    bot.send_message(chat_id, text, reply_markup=markup) 
+    try:
+        bot.send_photo(chat_id, image_url, caption=text, reply_markup=markup)
+    except Exception:
+        bot.send_message(chat_id, text, reply_markup=markup) 
 
 def handle_eth_trending_callbacks(call):
     chat_id = call.message.chat.id
@@ -136,10 +146,11 @@ def handle_eth_trending_callbacks(call):
 
 def handle_pumpfun_trending(call):
     chat_id = call.message.chat.id
-    image_url = 'https://raw.githubusercontent.com/raccityy/raccityy.github.io/refs/heads/main/pumpfun.jpg'
+    image_url = 'https://github.com/raccityy/smartbrother/raw/d77ab77ff3ad0bc717b7d26d787064d2d7b950d8/pupmfun.jpg'
     text = (
-        "💊PUMP.FUN TRENDING💊\n\n"
-        "💡THE BEST TRENDING IN THE BOT SECTION, DON'T MISS THE OPPORTUNITY TO GET 12 HOURS FREE SOLANA TRENDING ONCE YOU PURCHASE IT."
+        "🚀 PUMP.FUN Trending!\n\n"
+        "💡 THE BEST TRENDING SECTION IN THE BOT\n\n"
+        "Don't miss out this opportunity to get (12 Hours) free solana trending once you purchase!"
     )
     markup = InlineKeyboardMarkup(row_width=1)
     # First row: one button

@@ -11,7 +11,7 @@ The fastest and cheapest Telegram bot for creating bump orders.
 
 Supported Platform: Pumpfun and Raydium.
 
-Pumpfun BumpBot charges a one-time fee of 0.2 SOL per token, making it the cheapest bump bot ever!
+Pumpfun BumpBot charges a one-time fee of 0.3 SOL per token, making it the cheapest bump bot ever!
 
 📊 Trending channel: 
 https://t.me/pumpmints
