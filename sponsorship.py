@@ -2,6 +2,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot_instance import bot
 from datetime import datetime, timedelta
 from wallets import SOL_WALLET
+from project_details_formatter import send_project_details_confirmation, format_payment_summary_with_project_details, fetch_project_details_from_dexscreener
 import time
 import requests
 
@@ -166,105 +167,21 @@ Example: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"""
     # Store contract address
     sponsorship_data[chat_id]['contract_address'] = contract_address
     
-    # Try to get token info from DexScreener
-    dexscreener_url = f"https://api.dexscreener.com/latest/dex/tokens/{contract_address}"
-    try:
-        resp = requests.get(dexscreener_url, timeout=10)
-        data = resp.json()
-        found = bool(data.get('pairs') and len(data['pairs']) > 0)
-
-        if found:
-            pair = data['pairs'][0]
-            token_name = pair['baseToken'].get('name', 'Unknown')
-            token_symbol = pair['baseToken'].get('symbol', 'Unknown')
-            price_usd = pair.get('priceUsd', '0')
-            market_cap = pair.get('marketCap', '0')
-            volume_24h = pair.get('volume', {}).get('h24', '0')
-            liquidity_usd = pair.get('liquidity', {}).get('usd', '0')
-            dex_id = pair.get('dexId', 'Unknown')
-            chain_id = pair.get('chainId', 'Unknown')
-            
-            # Format numbers
-            try:
-                price_formatted = f"${float(price_usd):.6f}" if price_usd != '0' else 'N/A'
-                market_cap_formatted = f"${float(market_cap):,.0f}" if market_cap != '0' else 'N/A'
-                volume_formatted = f"${float(volume_24h):,.0f}" if volume_24h != '0' else 'N/A'
-                liquidity_formatted = f"${float(liquidity_usd):,.0f}" if liquidity_usd != '0' else 'N/A'
-            except (ValueError, TypeError):
-                price_formatted = 'N/A'
-                market_cap_formatted = 'N/A'
-                volume_formatted = 'N/A'
-                liquidity_formatted = 'N/A'
-            
-            # Store project details
-            sponsorship_data[chat_id]['token_name'] = token_name
-            sponsorship_data[chat_id]['token_symbol'] = token_symbol
-            sponsorship_data[chat_id]['price_usd'] = price_usd
-            sponsorship_data[chat_id]['market_cap'] = market_cap
-            sponsorship_data[chat_id]['volume_24h'] = volume_24h
-            sponsorship_data[chat_id]['liquidity_usd'] = liquidity_usd
-            sponsorship_data[chat_id]['dex_id'] = dex_id
-            sponsorship_data[chat_id]['chain_id'] = chain_id
-            sponsorship_data[chat_id]['state'] = 'confirming_project'
-            
-            # Show project details confirmation
-            text = f"""📄 <b>Project Details Found!</b>
-
-✅ <b>Contract Address:</b> <code>{contract_address}</code>
-
-📊 <b>Token Information:</b>
-• <b>Name:</b> {token_name}
-• <b>Symbol:</b> {token_symbol}
-• <b>Price:</b> {price_formatted}
-• <b>Market Cap:</b> {market_cap_formatted}
-• <b>24h Volume:</b> {volume_formatted}
-• <b>Liquidity:</b> {liquidity_formatted}
-• <b>DEX:</b> {dex_id}
-• <b>Chain:</b> {chain_id}
-
-Please confirm these project details are correct before proceeding."""
-            
-        else:
-            # Token not found on DexScreener
-            sponsorship_data[chat_id]['token_name'] = 'Unknown Token'
-            sponsorship_data[chat_id]['token_symbol'] = 'UNKNOWN'
-            sponsorship_data[chat_id]['state'] = 'confirming_project'
-            
-            text = f"""⚠️ <b>Project Not Found on DexScreener</b>
-
-✅ <b>Contract Address:</b> <code>{contract_address}</code>
-
-📊 <b>Token Information:</b>
-• <b>Name:</b> Unknown Token
-• <b>Symbol:</b> UNKNOWN
-• <b>Status:</b> Not listed on DexScreener
-
-The contract address is valid but the token details could not be fetched from DexScreener. You can still proceed with the sponsorship."""
-            
-    except Exception as e:
-        # Error fetching from DexScreener
-        sponsorship_data[chat_id]['token_name'] = 'Unknown Token'
-        sponsorship_data[chat_id]['token_symbol'] = 'UNKNOWN'
-        sponsorship_data[chat_id]['state'] = 'confirming_project'
-        
-        text = f"""⚠️ <b>Could Not Fetch Project Details</b>
-
-✅ <b>Contract Address:</b> <code>{contract_address}</code>
-
-📊 <b>Token Information:</b>
-• <b>Name:</b> Unknown Token
-• <b>Symbol:</b> UNKNOWN
-• <b>Status:</b> Error fetching from DexScreener
-
-There was an error fetching token details. You can still proceed with the sponsorship."""
+    # Fetch and store project details using standardized formatter
+    project_data = fetch_project_details_from_dexscreener(contract_address)
     
-    markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(
-        InlineKeyboardButton("✅ Confirm & Continue", callback_data="sponsor_confirm_project"),
-        InlineKeyboardButton("🔙 Back", callback_data="sponsor_back")
+    # Store all project details in sponsorship data
+    sponsorship_data[chat_id].update(project_data)
+    sponsorship_data[chat_id]['state'] = 'confirming_project'
+    
+    # Send standardized project details confirmation
+    send_project_details_confirmation(
+        chat_id=chat_id,
+        contract_address=contract_address,
+        confirm_callback="sponsor_confirm_project",
+        back_callback="sponsor_back"
     )
     
-    bot.send_message(chat_id, text, reply_markup=markup, parse_mode="HTML")
     return True
 
 # handle_token_details function removed - now using DexScreener API
@@ -373,71 +290,38 @@ def send_payment_summary(chat_id):
         return
     
     data = sponsorship_data[chat_id]
-    duration = data['duration']
-    price = data['price']
-    start_date = data['start_date']
-    contract_address = data.get('contract_address', 'Not provided')
-    token_name = data.get('token_name', 'Not provided')
-    token_symbol = data.get('token_symbol', 'Not provided')
-    telegram_address = data.get('telegram_address', 'Not provided')
-    
-    # Get additional project details from DexScreener if available
-    price_usd = data.get('price_usd', '0')
-    market_cap = data.get('market_cap', '0')
-    volume_24h = data.get('volume_24h', '0')
-    liquidity_usd = data.get('liquidity_usd', '0')
-    dex_id = data.get('dex_id', 'Unknown')
-    chain_id = data.get('chain_id', 'Unknown')
     
     # Calculate SOL amount (assuming 1 SOL = $50 for example)
-    sol_amount = price / 50  # Adjust this rate as needed
+    sol_amount = data['price'] / 50  # Adjust this rate as needed
     
-    # Format start date
-    start_date_str = start_date.strftime("%A, %d %B %Y")
+    # Prepare project data for standardized formatter
+    project_data = {
+        'contract_address': data.get('contract_address', 'Not provided'),
+        'token_name': data.get('token_name', 'Not provided'),
+        'token_symbol': data.get('token_symbol', 'Not provided'),
+        'found': data.get('found', False),
+        'price_formatted': data.get('price_formatted', 'N/A'),
+        'market_cap_formatted': data.get('market_cap_formatted', 'N/A'),
+        'volume_formatted': data.get('volume_formatted', 'N/A'),
+        'liquidity_formatted': data.get('liquidity_formatted', 'N/A'),
+        'dex_id': data.get('dex_id', 'Unknown'),
+        'chain_id': data.get('chain_id', 'Unknown'),
+        'status': data.get('status', 'Unknown')
+    }
     
-    # Format numbers
-    try:
-        price_formatted = f"${float(price_usd):.6f}" if price_usd != '0' else 'N/A'
-        market_cap_formatted = f"${float(market_cap):,.0f}" if market_cap != '0' else 'N/A'
-        volume_formatted = f"${float(volume_24h):,.0f}" if volume_24h != '0' else 'N/A'
-        liquidity_formatted = f"${float(liquidity_usd):,.0f}" if liquidity_usd != '0' else 'N/A'
-    except (ValueError, TypeError):
-        price_formatted = 'N/A'
-        market_cap_formatted = 'N/A'
-        volume_formatted = 'N/A'
-        liquidity_formatted = 'N/A'
+    # Prepare order details
+    order_details = {
+        'price': data['price'],
+        'duration': data['duration'],
+        'start_date': data['start_date'],
+        'telegram_address': data.get('telegram_address', 'Not provided'),
+        'sol_amount': f"{sol_amount:.3f}",
+        'wallet_address': SOL_WALLET
+    }
     
-    text = f"""⚙️ One last Step: Payment Required
-
-Thank you for providing your project details. Please complete the payment within the next 15 minutes.
-
-🔥 <b>Sponsorship Order Summary</b>
-
-📊 <b>Project Details:</b>
-• <b>Token Name:</b> {token_name}
-• <b>Symbol:</b> {token_symbol}
-• <b>Contract Address:</b> <code>{contract_address}</code>
-• <b>Price:</b> {price_formatted}
-• <b>Market Cap:</b> {market_cap_formatted}
-• <b>24h Volume:</b> {volume_formatted}
-• <b>Liquidity:</b> {liquidity_formatted}
-• <b>DEX:</b> {dex_id}
-• <b>Chain:</b> {chain_id}
-
-📺 <b>Sponsorship Details:</b>
-• <b>Duration:</b> {duration} Days
-• <b>Livestream Ticket:</b> 1
-• <b>Shared on:</b> TG & X
-• <b>Telegram Group:</b> {telegram_address}
-• <b>Start Date:</b> {start_date_str}
-• <b>Amount:</b> {sol_amount:.3f} SOL (${price})
-
-▶️ Please complete the payment of <b>{sol_amount:.3f} SOL</b> to the following wallet address:
-
-<code>{SOL_WALLET}</code>
-
-Click /sent to verify pending transactions"""
-
+    # Use standardized payment summary formatter
+    text = format_payment_summary_with_project_details(project_data, order_details)
+    
     bot.send_message(chat_id, text, parse_mode="HTML")
     
     # Clear sponsorship data

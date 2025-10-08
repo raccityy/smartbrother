@@ -1,6 +1,7 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot_instance import bot
 from user_sessions import set_user_ca, get_user_ca
+from project_details_formatter import send_project_details_confirmation
 import requests
 
 # Track users waiting for CA input
@@ -145,14 +146,13 @@ def handle_volume_ca_validation(message, ca, price, temp_ca_info):
             'price': price
         }
 
-    markup = InlineKeyboardMarkup()
-    markup.add(
-        InlineKeyboardButton("✅ Confirm", callback_data="vol_ca_confirm"),
-        InlineKeyboardButton("🔙 Back", callback_data="vol_back_ca")
+    # Use standardized project details formatting
+    send_project_details_confirmation(
+        chat_id=chat_id,
+        contract_address=ca,
+        confirm_callback="vol_ca_confirm",
+        back_callback="vol_back_ca"
     )
-
-    text = f"Selected token:\n\nChain: {chain}\nName: {name}\nSymbol: {symbol}\nCA: {ca}"
-    bot.send_message(chat_id, text, reply_markup=markup)
 
 def handle_trending_ca_validation(message, ca, price, source):
     """Handle CA validation for trending packages"""
@@ -197,26 +197,28 @@ def handle_trending_ca_validation(message, ca, price, source):
         name = 'Unknown'
         symbol = 'Unknown'
 
-    # Show confirmation message with token details
-    markup = InlineKeyboardMarkup()
+    # Use standardized project details formatting
     if source == "eth_trending":
-        markup.add(
-            InlineKeyboardButton("✅ Confirm", callback_data="eth_ca_confirm"),
-            InlineKeyboardButton("🔙 Back", callback_data="eth_back_ca")
+        send_project_details_confirmation(
+            chat_id=chat_id,
+            contract_address=ca,
+            confirm_callback="eth_ca_confirm",
+            back_callback="eth_back_ca"
         )
     elif source == "sol_trending":
-        markup.add(
-            InlineKeyboardButton("✅ Confirm", callback_data="sol_ca_confirm"),
-            InlineKeyboardButton("🔙 Back", callback_data="sol_back_ca")
+        send_project_details_confirmation(
+            chat_id=chat_id,
+            contract_address=ca,
+            confirm_callback="sol_ca_confirm",
+            back_callback="sol_back_ca"
         )
     elif source == "pumpfun_trending":
-        markup.add(
-            InlineKeyboardButton("✅ Confirm", callback_data="pumpfun_ca_confirm"),
-            InlineKeyboardButton("🔙 Back", callback_data="pumpfun_back_ca")
+        send_project_details_confirmation(
+            chat_id=chat_id,
+            contract_address=ca,
+            confirm_callback="pumpfun_ca_confirm",
+            back_callback="pumpfun_back_ca"
         )
-
-    text = f"Selected token:\n\nChain: {chain}\nName: {name}\nSymbol: {symbol}\nCA: {ca}"
-    bot.send_message(chat_id, text, reply_markup=markup)
 
 def handle_general_ca_validation(message, ca, price, send_payment_instructions, temp_ca_info=None):
     """Handle CA validation for general packages"""
@@ -270,14 +272,13 @@ def handle_general_ca_validation(message, ca, price, send_payment_instructions, 
             'price': price
         }
 
-    markup = InlineKeyboardMarkup()
-    markup.add(
-        InlineKeyboardButton("✅ Confirm", callback_data="ca_confirm"),
-        InlineKeyboardButton("🔙 Back", callback_data="back_ca")
+    # Use standardized project details formatting
+    send_project_details_confirmation(
+        chat_id=chat_id,
+        contract_address=ca,
+        confirm_callback="ca_confirm",
+        back_callback="back_ca"
     )
-
-    text = f"Selected token:\n\nChain: {chain}\nName: {name}\nSymbol: {symbol}\nCA: {ca}"
-    bot.send_message(chat_id, text, reply_markup=markup)
 
 def handle_ca_callback(call):
     """Handle CA-related callbacks (cancel, retry)"""
