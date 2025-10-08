@@ -16,7 +16,7 @@ from dexscreener import handle_dexscreener, handle_dexscreener_trend, banner_wai
 from wallets import SOL_WALLET, ETH_WALLET_100, ETH_WALLET_200, ETH_WALLET_300, PUMPFUN_WALLET, DEFAULT_WALLET
 from ca_input_handler import handle_ca_input, handle_ca_callback, is_user_waiting_for_ca, send_ca_prompt
 from bot_lock import BotLock
-from sponsorship import handle_sponsorship, handle_sponsorship_duration, handle_sponsorship_date, handle_sponsorship_back, handle_telegram_address, handle_design_media, is_user_in_sponsorship_flow, handle_sponsorship_skip_telegram, handle_sponsorship_skip_design
+from sponsorship import handle_sponsorship, handle_sponsorship_duration, handle_sponsorship_date, handle_sponsorship_back, handle_contract_address, handle_telegram_address, handle_design_media, is_user_in_sponsorship_flow, handle_sponsorship_confirm_project, handle_sponsorship_confirm_contract, handle_sponsorship_confirm_token_details, handle_sponsorship_confirm_telegram, handle_sponsorship_retry_contract, handle_sponsorship_retry_telegram, handle_sponsorship_retry_design
 from exclusive_ads import handle_exclusive_ads, handle_exclusive_ultimate, handle_exclusive_voting, handle_exclusive_massdm, handle_exclusive_buttonads, handle_exclusive_majorama, handle_exclusive_back
 # import telebot
 # print(telebot.__version__)
@@ -582,10 +582,18 @@ def handle_callbacks(call):
             handle_sponsorship_duration(call)
         elif call.data.startswith("sponsor_date_"):
             handle_sponsorship_date(call)
-        elif call.data == "sponsor_skip_telegram":
-            handle_sponsorship_skip_telegram(call)
-        elif call.data == "sponsor_skip_design":
-            handle_sponsorship_skip_design(call)
+        elif call.data == "sponsor_confirm_project":
+            handle_sponsorship_confirm_project(call)
+        elif call.data == "sponsor_confirm_contract":
+            handle_sponsorship_confirm_contract(call)
+        elif call.data == "sponsor_confirm_telegram":
+            handle_sponsorship_confirm_telegram(call)
+        elif call.data == "sponsor_retry_contract":
+            handle_sponsorship_retry_contract(call)
+        elif call.data == "sponsor_retry_telegram":
+            handle_sponsorship_retry_telegram(call)
+        elif call.data == "sponsor_retry_design":
+            handle_sponsorship_retry_design(call)
         elif call.data == "sponsor_back":
             handle_sponsorship_back(call)
         return
@@ -688,7 +696,7 @@ def handle_contract_address_or_tx(message):
 
     # Handle sponsorship flow
     if is_user_in_sponsorship_flow(chat_id):
-        if handle_telegram_address(message) or handle_design_media(message):
+        if handle_contract_address(message) or handle_telegram_address(message) or handle_design_media(message):
             return
 
     # Handle CA input with new handler
