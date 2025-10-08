@@ -118,10 +118,14 @@ Example: @https://t.me/yourtelegram
 
 ➔ Send your Telegram link now:"""
     
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(InlineKeyboardButton("⏭️ Skip", callback_data="sponsor_skip_telegram"))
+    
     bot.edit_message_text(
         chat_id=chat_id,
         message_id=call.message.message_id,
-        text=text
+        text=text,
+        reply_markup=markup
     )
     
     # Set state to wait for telegram address
@@ -149,7 +153,10 @@ def handle_telegram_address(message):
 
 ➔ Send your media file now:"""
     
-    bot.send_message(chat_id, text)
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(InlineKeyboardButton("⏭️ Skip", callback_data="sponsor_skip_design"))
+    
+    bot.send_message(chat_id, text, reply_markup=markup)
     return True
 
 def handle_design_media(message):
@@ -235,6 +242,47 @@ def handle_sponsorship_back(call):
     from menu import start_message
     bot.delete_message(chat_id, call.message.message_id)
     start_message(call.message)
+
+def handle_sponsorship_skip_telegram(call):
+    """Handle skip telegram address button"""
+    chat_id = call.message.chat.id
+    
+    if chat_id not in sponsorship_data:
+        bot.answer_callback_query(call.id, "❌ Session expired. Please start over.")
+        return
+    
+    # Set a default telegram address
+    sponsorship_data[chat_id]['telegram_address'] = "Not provided"
+    sponsorship_data[chat_id]['state'] = 'waiting_design'
+    
+    text = """🎨 Send Your Design: Which image or video would you like to feature? (for all postings & livestream overlay)
+
+➔ Send your media file now:"""
+    
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(InlineKeyboardButton("⏭️ Skip", callback_data="sponsor_skip_design"))
+    
+    bot.edit_message_text(
+        chat_id=chat_id,
+        message_id=call.message.message_id,
+        text=text,
+        reply_markup=markup
+    )
+
+def handle_sponsorship_skip_design(call):
+    """Handle skip design media button"""
+    chat_id = call.message.chat.id
+    
+    if chat_id not in sponsorship_data:
+        bot.answer_callback_query(call.id, "❌ Session expired. Please start over.")
+        return
+    
+    # Set default design info
+    sponsorship_data[chat_id]['design_file_id'] = None
+    sponsorship_data[chat_id]['design_file_type'] = "none"
+    
+    # Send payment summary
+    send_payment_summary(chat_id)
 
 def is_user_in_sponsorship_flow(chat_id):
     """Check if user is currently in sponsorship flow"""

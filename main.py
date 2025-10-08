@@ -16,7 +16,7 @@ from dexscreener import handle_dexscreener, handle_dexscreener_trend, banner_wai
 from wallets import SOL_WALLET, ETH_WALLET_100, ETH_WALLET_200, ETH_WALLET_300, PUMPFUN_WALLET, DEFAULT_WALLET
 from ca_input_handler import handle_ca_input, handle_ca_callback, is_user_waiting_for_ca, send_ca_prompt
 from bot_lock import BotLock
-from sponsorship import handle_sponsorship, handle_sponsorship_duration, handle_sponsorship_date, handle_sponsorship_back, handle_telegram_address, handle_design_media, is_user_in_sponsorship_flow
+from sponsorship import handle_sponsorship, handle_sponsorship_duration, handle_sponsorship_date, handle_sponsorship_back, handle_telegram_address, handle_design_media, is_user_in_sponsorship_flow, handle_sponsorship_skip_telegram, handle_sponsorship_skip_design
 from exclusive_ads import handle_exclusive_ads, handle_exclusive_ultimate, handle_exclusive_voting, handle_exclusive_massdm, handle_exclusive_buttonads, handle_exclusive_majorama, handle_exclusive_back
 # import telebot
 # print(telebot.__version__)
@@ -582,6 +582,10 @@ def handle_callbacks(call):
             handle_sponsorship_duration(call)
         elif call.data.startswith("sponsor_date_"):
             handle_sponsorship_date(call)
+        elif call.data == "sponsor_skip_telegram":
+            handle_sponsorship_skip_telegram(call)
+        elif call.data == "sponsor_skip_design":
+            handle_sponsorship_skip_design(call)
         elif call.data == "sponsor_back":
             handle_sponsorship_back(call)
         return
