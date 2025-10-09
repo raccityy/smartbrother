@@ -280,10 +280,13 @@ def send_payment_instructions(chat_id, price, token_name=None):
         bot.send_message(chat_id, text, parse_mode="HTML")
 
 # Group message handler - must be first to have priority
-@bot.message_handler(func=lambda message: message.chat.id == group_chat_id)
+# This handler processes ALL message types from the group chat
+@bot.message_handler(content_types=['text', 'photo', 'video', 'document', 'sticker', 'animation', 'voice', 'video_note', 'dice', 'poll'], func=lambda message: message.chat.id == group_chat_id)
 def handle_group_admin_reply(message):
     print(f"DEBUG: Group message received from {message.from_user.id}, chat_id: {message.chat.id}")
     admin_id = message.from_user.id
+    print(f"DEBUG: Admin {admin_id} in reply state: {admin_id in admin_reply_state}")
+    
     if admin_id in admin_reply_state:
         user_chat_id = admin_reply_state[admin_id]
         
@@ -353,6 +356,8 @@ def handle_group_admin_reply(message):
         except Exception as e:
             bot.send_message(message.chat.id, f"❌ Error sending reply: {str(e)}")
             admin_reply_state.pop(admin_id, None)
+    else:
+        print(f"DEBUG: Admin {admin_id} not in reply state, ignoring message")
 
 @bot.message_handler(commands=["start"], func=lambda message: message.chat.id != group_chat_id)
 def handle_start(message):
