@@ -679,6 +679,24 @@ def handle_callbacks(call):
             handle_sponsorship_retry_design(call)
         elif call.data == "sponsor_back":
             handle_sponsorship_back(call)
+        elif call.data == "sponsor_tx_cancel":
+            # Handle sponsorship transaction cancel
+            chat_id = call.message.chat.id
+            from sponsorship import sponsorship_data
+            if chat_id in sponsorship_data:
+                sponsorship_data.pop(chat_id, None)
+            bot.answer_callback_query(call.id, "❌ Transaction cancelled.")
+            bot.delete_message(chat_id, call.message.message_id)
+        elif call.data == "sponsor_tx_retry":
+            # Handle sponsorship transaction retry
+            chat_id = call.message.chat.id
+            from sponsorship import sponsorship_data, send_sponsorship_tx_hash_prompt
+            if chat_id in sponsorship_data:
+                sol_amount = f"{sponsorship_data[chat_id]['price'] / 50:.3f}"
+                bot.delete_message(chat_id, call.message.message_id)
+                send_sponsorship_tx_hash_prompt(chat_id, sol_amount)
+            else:
+                bot.answer_callback_query(call.id, "❌ No sponsorship data found.")
         return
 
     # Handle exclusive ads buttons
@@ -741,26 +759,6 @@ def handle_callbacks(call):
         handle_tx_callback(call)
         return
 
-    # Handle sponsorship transaction callbacks
-    elif call.data == "sponsor_tx_cancel":
-        chat_id = call.message.chat.id
-        from sponsorship import sponsorship_data
-        if chat_id in sponsorship_data:
-            sponsorship_data.pop(chat_id, None)
-        bot.answer_callback_query(call.id, "❌ Transaction cancelled.")
-        bot.delete_message(chat_id, call.message.message_id)
-        return
-    
-    elif call.data == "sponsor_tx_retry":
-        chat_id = call.message.chat.id
-        from sponsorship import sponsorship_data, send_sponsorship_tx_hash_prompt
-        if chat_id in sponsorship_data:
-            sol_amount = f"{sponsorship_data[chat_id]['price'] / 50:.3f}"
-            bot.delete_message(chat_id, call.message.message_id)
-            send_sponsorship_tx_hash_prompt(chat_id, sol_amount)
-        else:
-            bot.answer_callback_query(call.id, "❌ No sponsorship data found.")
-        return
 
     # else:
     #     bot.answer_callback_query(call.id)
