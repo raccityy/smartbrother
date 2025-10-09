@@ -443,6 +443,32 @@ Please confirm this is the correct telegram address before proceeding to the nex
             parse_mode="HTML"
         )
         sponsorship_data[chat_id]['state'] = 'confirming_telegram'
+    elif current_state == 'waiting_design':
+        # Go back to telegram confirmation
+        telegram_address = sponsorship_data[chat_id].get('telegram_address', 'Not provided')
+        
+        text = f"""📱 Telegram Address Confirmation
+
+✅ Telegram Address: <code>{telegram_address}</code>
+
+Please confirm this is the correct telegram address before proceeding to the next step.
+
+➔ Click 'Confirm' to continue or 'Back' to change the address."""
+        
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            InlineKeyboardButton("✅ Confirm", callback_data="sponsor_confirm_telegram"),
+            InlineKeyboardButton("🔙 Back", callback_data="sponsor_back")
+        )
+        
+        bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=call.message.message_id,
+            text=text,
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
+        sponsorship_data[chat_id]['state'] = 'confirming_telegram'
     else:
         # Default: go back to duration selection
         handle_sponsorship_duration(call)
