@@ -210,9 +210,9 @@ Thank you for providing your project details. Please complete the payment within
 • <b>Duration:</b> {duration} Days
 • <b>Start Date:</b> {start_date_str}
 • <b>Telegram Group:</b> {telegram_address}
-• <b>Amount:</b> {sol_amount} SOL (${price})
+• <b>Amount:</b> {sol_amount} SOL ({order_details.get('usdt_amount', f'${price}')} USDT)
 
-▶️ Please complete the payment of <b>{sol_amount} SOL</b> to the following wallet address:
+▶️ Please complete the payment of <b>{sol_amount} SOL</b> ({order_details.get('usdt_amount', f'${price}')} USDT) to the following wallet address:
 
 <code>{order_details.get('wallet_address', 'N/A')}</code>
 
@@ -235,9 +235,9 @@ Thank you for providing your project details. Please complete the payment within
 • <b>Duration:</b> {duration} Days
 • <b>Start Date:</b> {start_date_str}
 • <b>Telegram Group:</b> {telegram_address}
-• <b>Amount:</b> {sol_amount} SOL (${price})
+• <b>Amount:</b> {sol_amount} SOL ({order_details.get('usdt_amount', f'${price}')} USDT)
 
-▶️ Please complete the payment of <b>{sol_amount} SOL</b> to the following wallet address:
+▶️ Please complete the payment of <b>{sol_amount} SOL</b> ({order_details.get('usdt_amount', f'${price}')} USDT) to the following wallet address:
 
 <code>{order_details.get('wallet_address', 'N/A')}</code>
 

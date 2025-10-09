@@ -292,8 +292,8 @@ def send_payment_summary(chat_id):
     
     data = sponsorship_data[chat_id]
     
-    # Calculate SOL amount (assuming 1 SOL = $50 for example)
-    sol_amount = data['price'] / 50  # Adjust this rate as needed
+    # Calculate SOL amount (1 SOL = $222)
+    sol_amount = data['price'] / 222
     
     # Prepare project data for standardized formatter
     project_data = {
@@ -317,6 +317,7 @@ def send_payment_summary(chat_id):
         'start_date': data['start_date'],
         'telegram_address': data.get('telegram_address', 'Not provided'),
         'sol_amount': f"{sol_amount:.3f}",
+        'usdt_amount': f"${data['price']}",
         'wallet_address': SOL_WALLET
     }
     
@@ -328,15 +329,21 @@ def send_payment_summary(chat_id):
     # Keep sponsorship data for /sent command - don't clear immediately
     sponsorship_data[chat_id]['state'] = 'payment_pending'
 
-def send_sponsorship_tx_hash_prompt(chat_id, sol_amount):
+def send_sponsorship_tx_hash_prompt(chat_id, sol_amount, usdt_amount=None):
     """Send sponsorship-specific tx hash input prompt with cancel button"""
     # Update state to waiting for transaction hash
     if chat_id in sponsorship_data:
         sponsorship_data[chat_id]['state'] = 'waiting_tx_hash'
     
+    # Format amount display
+    if usdt_amount:
+        amount_display = f"<b>{sol_amount} SOL</b> ({usdt_amount} USDT)"
+    else:
+        amount_display = f"<b>{sol_amount} SOL</b>"
+    
     text = f"""💳 <b>Transaction Verification Required</b>
 
-You selected sponsorship payment of <b>{sol_amount} SOL</b>
+You selected sponsorship payment of {amount_display}
 
 Please send your transaction hash below and await immediate confirmation.
 
@@ -365,12 +372,12 @@ def send_sponsorship_verification_to_group(user, data, tx_hash, user_chat_id=Non
     token_symbol = data.get('token_symbol', 'Not provided')
     
     start_date_str = start_date.strftime("%A, %d %B %Y")
-    sol_amount = f"{price / 50:.3f}"
+    sol_amount = f"{price / 222:.3f}"
     
     text = f"""🔥 <b>SPONSORSHIP PAYMENT VERIFICATION</b>
 
 👤 <b>User:</b> @{user}
-💳 <b>Amount:</b> {sol_amount} SOL (${price})
+💳 <b>Amount:</b> {sol_amount} SOL (${price} USDT)
 📅 <b>Duration:</b> {duration} Days
 📅 <b>Start Date:</b> {start_date_str}
 📱 <b>Telegram:</b> {telegram_address}

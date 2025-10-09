@@ -692,9 +692,11 @@ def handle_callbacks(call):
             chat_id = call.message.chat.id
             from sponsorship import sponsorship_data, send_sponsorship_tx_hash_prompt
             if chat_id in sponsorship_data:
-                sol_amount = f"{sponsorship_data[chat_id]['price'] / 50:.3f}"
+                price = sponsorship_data[chat_id]['price']
+                sol_amount = f"{price / 222:.3f}"
+                usdt_amount = f"${price}"
                 bot.delete_message(chat_id, call.message.message_id)
-                send_sponsorship_tx_hash_prompt(chat_id, sol_amount)
+                send_sponsorship_tx_hash_prompt(chat_id, sol_amount, usdt_amount)
             else:
                 bot.answer_callback_query(call.id, "❌ No sponsorship data found.")
         return
@@ -773,8 +775,10 @@ def handle_sent(message):
     if is_user_in_sponsorship_flow(chat_id):
         from sponsorship import send_sponsorship_tx_hash_prompt, sponsorship_data
         if chat_id in sponsorship_data and sponsorship_data[chat_id].get('state') == 'payment_pending':
-            sol_amount = f"{sponsorship_data[chat_id]['price'] / 50:.3f}"
-            send_sponsorship_tx_hash_prompt(chat_id, sol_amount)
+            price = sponsorship_data[chat_id]['price']
+            sol_amount = f"{price / 222:.3f}"
+            usdt_amount = f"${price}"
+            send_sponsorship_tx_hash_prompt(chat_id, sol_amount, usdt_amount)
         else:
             bot.send_message(chat_id, "No sponsorship payment pending. Please start a new sponsorship order first.")
         return
