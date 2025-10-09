@@ -63,7 +63,8 @@ def handle_sponsorship_duration(call):
     sponsorship_data[chat_id] = {
         'duration': duration,
         'price': price,
-        'timestamp': time.time()
+        'timestamp': time.time(),
+        'state': 'selecting_date'
     }
     
     # Generate available dates (starting from tomorrow)
@@ -341,7 +342,10 @@ def handle_sponsorship_back(call):
     current_state = sponsorship_data[chat_id].get('state', '')
     
     # Navigate back through the flow based on current state
-    if current_state == 'waiting_contract':
+    if current_state == 'selecting_date':
+        # Go back to duration selection
+        handle_sponsorship(call)
+    elif current_state == 'waiting_contract':
         # Go back to date selection
         handle_sponsorship_duration(call)
     elif current_state == 'confirming_project':
@@ -583,4 +587,4 @@ def handle_sponsorship_retry_design(call):
 
 def is_user_in_sponsorship_flow(chat_id):
     """Check if user is currently in sponsorship flow"""
-    return chat_id in sponsorship_data and sponsorship_data[chat_id].get('state') in ['waiting_contract', 'confirming_project', 'waiting_telegram', 'confirming_telegram', 'waiting_design']
+    return chat_id in sponsorship_data and sponsorship_data[chat_id].get('state') in ['selecting_date', 'waiting_contract', 'confirming_project', 'waiting_telegram', 'confirming_telegram', 'waiting_design']
