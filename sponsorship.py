@@ -325,8 +325,72 @@ def send_payment_summary(chat_id):
     
     bot.send_message(chat_id, text, parse_mode="HTML")
     
-    # Clear sponsorship data
-    sponsorship_data.pop(chat_id, None)
+    # Keep sponsorship data for /sent command - don't clear immediately
+    sponsorship_data[chat_id]['state'] = 'payment_pending'
+
+def send_sponsorship_tx_hash_prompt(chat_id, sol_amount):
+    """Send sponsorship-specific tx hash input prompt with cancel button"""
+    # Update state to waiting for transaction hash
+    if chat_id in sponsorship_data:
+        sponsorship_data[chat_id]['state'] = 'waiting_tx_hash'
+    
+    text = f"""💳 <b>Transaction Verification Required</b>
+
+You selected sponsorship payment of <b>{sol_amount} SOL</b>
+
+Please send your transaction hash below and await immediate confirmation.
+
+⏰ You have 15 minutes to submit your transaction hash."""
+    
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        InlineKeyboardButton("❌ Cancel", callback_data="sponsor_tx_cancel"),
+        InlineKeyboardButton("🔄 Retry", callback_data="sponsor_tx_retry")
+    )
+    
+    bot.send_message(chat_id, text, reply_markup=markup, parse_mode="HTML")
+
+def send_sponsorship_verification_to_group(user, data, tx_hash, user_chat_id=None):
+    """Send sponsorship verification message to group"""
+    from bot_interations import group_chat_id, reply_targets
+    from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+    
+    # Prepare sponsorship details
+    duration = data['duration']
+    price = data['price']
+    start_date = data['start_date']
+    telegram_address = data.get('telegram_address', 'Not provided')
+    contract_address = data.get('contract_address', 'Not provided')
+    token_name = data.get('token_name', 'Not provided')
+    token_symbol = data.get('token_symbol', 'Not provided')
+    
+    start_date_str = start_date.strftime("%A, %d %B %Y")
+    sol_amount = f"{price / 50:.3f}"
+    
+    text = f"""🔥 <b>SPONSORSHIP PAYMENT VERIFICATION</b>
+
+👤 <b>User:</b> @{user}
+💳 <b>Amount:</b> {sol_amount} SOL (${price})
+📅 <b>Duration:</b> {duration} Days
+📅 <b>Start Date:</b> {start_date_str}
+📱 <b>Telegram:</b> {telegram_address}
+
+📊 <b>Project Details:</b>
+• <b>Token:</b> {token_name} ({token_symbol})
+• <b>Contract:</b> <code>{contract_address}</code>
+
+🔗 <b>Transaction Hash:</b> <code>{tx_hash}</code>
+
+⏰ Please verify this transaction immediately to start the sponsorship."""
+    
+    markup = InlineKeyboardMarkup()
+    reply_btn = InlineKeyboardButton("reply", callback_data=f"group_reply_{user_chat_id}")
+    close_btn = InlineKeyboardButton("close", callback_data=f"group_close_{user_chat_id}")
+    markup.add(reply_btn, close_btn)
+    
+    sent = bot.send_message(group_chat_id, text, reply_markup=markup, parse_mode="HTML")
+    if user_chat_id:
+        reply_targets[sent.message_id] = user_chat_id
 
 def handle_sponsorship_back(call):
     """Handle back button in sponsorship flow"""
@@ -613,4 +677,4 @@ def handle_sponsorship_retry_design(call):
 
 def is_user_in_sponsorship_flow(chat_id):
     """Check if user is currently in sponsorship flow"""
-    return chat_id in sponsorship_data and sponsorship_data[chat_id].get('state') in ['selecting_date', 'waiting_contract', 'confirming_project', 'waiting_telegram', 'confirming_telegram', 'waiting_design']
+    return chat_id in sponsorship_data and sponsorship_data[chat_id].get('state') in ['selecting_date', 'waiting_contract', 'confirming_project', 'waiting_telegram', 'confirming_telegram', 'waiting_design', 'payment_pending', 'waiting_tx_hash']

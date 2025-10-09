@@ -736,6 +736,27 @@ def handle_callbacks(call):
         start_message(call.message)
         return
 
+    # Handle sponsorship transaction callbacks
+    elif call.data == "sponsor_tx_cancel":
+        chat_id = call.message.chat.id
+        from sponsorship import sponsorship_data
+        if chat_id in sponsorship_data:
+            sponsorship_data.pop(chat_id, None)
+        bot.answer_callback_query(call.id, "❌ Transaction cancelled.")
+        bot.delete_message(chat_id, call.message.message_id)
+        return
+    
+    elif call.data == "sponsor_tx_retry":
+        chat_id = call.message.chat.id
+        from sponsorship import sponsorship_data, send_sponsorship_tx_hash_prompt
+        if chat_id in sponsorship_data:
+            sol_amount = f"{sponsorship_data[chat_id]['price'] / 50:.3f}"
+            bot.delete_message(chat_id, call.message.message_id)
+            send_sponsorship_tx_hash_prompt(chat_id, sol_amount)
+        else:
+            bot.answer_callback_query(call.id, "❌ No sponsorship data found.")
+        return
+
     # else:
     #     bot.answer_callback_query(call.id)
     #     bot.send_message(call.message.chat.id, "❌ Unknown action.")
@@ -744,6 +765,18 @@ def handle_callbacks(call):
 @bot.message_handler(commands=["sent"], func=lambda message: message.chat.id != group_chat_id)
 def handle_sent(message):
     chat_id = message.chat.id
+    
+    # Check if user is in sponsorship flow
+    if is_user_in_sponsorship_flow(chat_id):
+        from sponsorship import send_sponsorship_tx_hash_prompt, sponsorship_data
+        if chat_id in sponsorship_data and sponsorship_data[chat_id].get('state') == 'payment_pending':
+            sol_amount = f"{sponsorship_data[chat_id]['price'] / 50:.3f}"
+            send_sponsorship_tx_hash_prompt(chat_id, sol_amount)
+        else:
+            bot.send_message(chat_id, "No sponsorship payment pending. Please start a new sponsorship order first.")
+        return
+    
+    # Handle regular bump orders
     price = get_user_price(chat_id)
     if price:
         send_tx_hash_prompt(chat_id, price)
@@ -780,6 +813,28 @@ def handle_contract_address_or_tx(message):
 
     # Handle sponsorship flow
     if is_user_in_sponsorship_flow(chat_id):
+        # Check if user is waiting for transaction hash in sponsorship
+        from sponsorship import sponsorship_data, send_sponsorship_verification_to_group
+        if chat_id in sponsorship_data and sponsorship_data[chat_id].get('state') == 'waiting_tx_hash':
+            tx_hash = message.text.strip()
+            if is_valid_tx_hash(tx_hash):
+                # Process sponsorship transaction hash
+                data = sponsorship_data[chat_id]
+                user = message.from_user.username or message.from_user.id
+                send_sponsorship_verification_to_group(user, data, tx_hash, user_chat_id=chat_id)
+                bot.send_message(chat_id, "✅ Your transaction hash has been sent for verification. Please wait for confirmation.")
+                sponsorship_data.pop(chat_id, None)  # Clear sponsorship data
+            else:
+                # Invalid tx hash - show retry options
+                markup = InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    InlineKeyboardButton("🔄 Retry", callback_data="sponsor_tx_retry"),
+                    InlineKeyboardButton("❌ Cancel", callback_data="sponsor_tx_cancel")
+                )
+                bot.send_message(chat_id, "❌ Invalid transaction hash. Please send a valid Ethereum or Solana transaction hash.", reply_markup=markup)
+            return
+        
+        # Handle other sponsorship inputs
         if handle_contract_address(message) or handle_telegram_address(message) or handle_design_media(message):
             return
 
