@@ -736,6 +736,11 @@ def handle_callbacks(call):
         start_message(call.message)
         return
 
+    # Handle regular transaction callbacks
+    elif call.data in ["tx_cancel", "tx_retry"]:
+        handle_tx_callback(call)
+        return
+
     # Handle sponsorship transaction callbacks
     elif call.data == "sponsor_tx_cancel":
         chat_id = call.message.chat.id
