@@ -8,6 +8,9 @@ import requests
 from menu import start_message
 from bot_interations import send_payment_verification_to_group, handle_group_callback, group_chat_id
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+# Import group reply functionality
+from bot_interations import admin_reply_state
 from volume import handle_volume, handle_volume_package, volume_temp_ca_info
 from premuim import handle_premium, handle_sol_trending, handle_sol_trending_callbacks, handle_eth_trending, handle_eth_trending_callbacks, handle_pumpfun_trending, handle_pumpfun_trending_callbacks
 from deposit import handle_deposit
@@ -275,6 +278,73 @@ def send_payment_instructions(chat_id, price, token_name=None):
             bot.send_message(chat_id, text, parse_mode="HTML")
     else:
         bot.send_message(chat_id, text, parse_mode="HTML")
+
+# Group message handler - must be first to have priority
+@bot.message_handler(func=lambda message: message.chat.id == group_chat_id)
+def handle_group_admin_reply(message):
+    print(f"DEBUG: Group message received from {message.from_user.id}, chat_id: {message.chat.id}")
+    admin_id = message.from_user.id
+    if admin_id in admin_reply_state:
+        user_chat_id = admin_reply_state[admin_id]
+        
+        # Handle cancel command
+        if message.text and message.text.lower() in ['/cancel', '/exit', '/stop']:
+            admin_reply_state.pop(admin_id, None)
+            bot.send_message(message.chat.id, "❌ Reply mode cancelled.")
+            return
+        
+        # Handle different types of messages
+        try:
+            if message.text:
+                # Text message (including emojis)
+                bot.send_message(user_chat_id, f"{message.text}")
+                bot.send_message(message.chat.id, "✅ Text reply sent to user.")
+            elif message.photo:
+                # Image message
+                bot.send_photo(user_chat_id, message.photo[-1].file_id, caption=message.caption)
+                bot.send_message(message.chat.id, "✅ Image reply sent to user.")
+            elif message.sticker:
+                # Sticker message
+                bot.send_sticker(user_chat_id, message.sticker.file_id)
+                bot.send_message(message.chat.id, "✅ Sticker reply sent to user.")
+            elif message.animation:
+                # GIF/Animation message
+                bot.send_animation(user_chat_id, message.animation.file_id, caption=message.caption)
+                bot.send_message(message.chat.id, "✅ Animation reply sent to user.")
+            elif message.video:
+                # Video message
+                bot.send_video(user_chat_id, message.video.file_id, caption=message.caption)
+                bot.send_message(message.chat.id, "✅ Video reply sent to user.")
+            elif message.document:
+                # Document message
+                bot.send_document(user_chat_id, message.document.file_id, caption=message.caption)
+                bot.send_message(message.chat.id, "✅ Document reply sent to user.")
+            elif message.voice:
+                # Voice message
+                bot.send_voice(user_chat_id, message.voice.file_id)
+                bot.send_message(message.chat.id, "✅ Voice reply sent to user.")
+            elif message.video_note:
+                # Video note (round video)
+                bot.send_video_note(user_chat_id, message.video_note.file_id)
+                bot.send_message(message.chat.id, "✅ Video note reply sent to user.")
+            elif message.dice:
+                # Dice message
+                bot.send_dice(user_chat_id, emoji=message.dice.emoji)
+                bot.send_message(message.chat.id, "✅ Dice reply sent to user.")
+            elif message.poll:
+                # Poll message
+                bot.send_poll(user_chat_id, question=message.poll.question, options=[option.text for option in message.poll.options])
+                bot.send_message(message.chat.id, "✅ Poll reply sent to user.")
+            else:
+                # Fallback for other message types
+                bot.send_message(user_chat_id, "Admin sent a message (unsupported format)")
+                bot.send_message(message.chat.id, "⚠️ Unsupported message type sent to user.")
+            
+            # Keep admin in reply mode for multiple messages
+            
+        except Exception as e:
+            bot.send_message(message.chat.id, f"❌ Error sending reply: {str(e)}")
+            admin_reply_state.pop(admin_id, None)
 
 @bot.message_handler(commands=["start"], func=lambda message: message.chat.id != group_chat_id)
 def handle_start(message):
