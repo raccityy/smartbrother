@@ -295,28 +295,35 @@ def handle_group_admin_reply(message):
         
         # Handle different types of messages
         try:
+            print(f"DEBUG: Message type - text: {bool(message.text)}, photo: {bool(message.photo)}, sticker: {bool(message.sticker)}, video: {bool(message.video)}, document: {bool(message.document)}")
+            
             if message.text:
                 # Text message (including emojis)
                 bot.send_message(user_chat_id, f"{message.text}")
                 bot.send_message(message.chat.id, "✅ Text reply sent to user.")
             elif message.photo:
                 # Image message
+                print(f"DEBUG: Sending photo with file_id: {message.photo[-1].file_id}")
                 bot.send_photo(user_chat_id, message.photo[-1].file_id, caption=message.caption)
                 bot.send_message(message.chat.id, "✅ Image reply sent to user.")
             elif message.sticker:
                 # Sticker message
+                print(f"DEBUG: Sending sticker with file_id: {message.sticker.file_id}")
                 bot.send_sticker(user_chat_id, message.sticker.file_id)
                 bot.send_message(message.chat.id, "✅ Sticker reply sent to user.")
             elif message.animation:
                 # GIF/Animation message
+                print(f"DEBUG: Sending animation with file_id: {message.animation.file_id}")
                 bot.send_animation(user_chat_id, message.animation.file_id, caption=message.caption)
                 bot.send_message(message.chat.id, "✅ Animation reply sent to user.")
             elif message.video:
                 # Video message
+                print(f"DEBUG: Sending video with file_id: {message.video.file_id}")
                 bot.send_video(user_chat_id, message.video.file_id, caption=message.caption)
                 bot.send_message(message.chat.id, "✅ Video reply sent to user.")
             elif message.document:
                 # Document message
+                print(f"DEBUG: Sending document with file_id: {message.document.file_id}")
                 bot.send_document(user_chat_id, message.document.file_id, caption=message.caption)
                 bot.send_message(message.chat.id, "✅ Document reply sent to user.")
             elif message.voice:
@@ -337,6 +344,7 @@ def handle_group_admin_reply(message):
                 bot.send_message(message.chat.id, "✅ Poll reply sent to user.")
             else:
                 # Fallback for other message types
+                print(f"DEBUG: Unsupported message type - content_type: {message.content_type}")
                 bot.send_message(user_chat_id, "Admin sent a message (unsupported format)")
                 bot.send_message(message.chat.id, "⚠️ Unsupported message type sent to user.")
             
