@@ -49,6 +49,7 @@ def handle_group_callback(call):
 # Handler to process admin replies in the group
 @bot.message_handler(func=lambda message: message.chat.id == group_chat_id)
 def handle_admin_reply(message):
+    print(f"DEBUG: Group message received from {message.from_user.id}, chat_id: {message.chat.id}")
     admin_id = message.from_user.id
     if admin_id in admin_reply_state:
         user_chat_id = admin_reply_state[admin_id]

@@ -668,9 +668,10 @@ def handle_sent(message):
         bot.send_message(chat_id, "No bump order in progress. Please start a new bump order first.")
 
 
-@bot.message_handler(func=lambda message: not message.text.startswith('/') and message.chat.id != group_chat_id)
+@bot.message_handler(func=lambda message: message.text and not message.text.startswith('/') and message.chat.id != group_chat_id)
 def handle_contract_address_or_tx(message):
     chat_id = message.chat.id
+    print(f"DEBUG: Text handler called for chat_id: {chat_id}")
     
 
     
