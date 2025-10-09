@@ -276,7 +276,7 @@ def send_payment_instructions(chat_id, price, token_name=None):
     else:
         bot.send_message(chat_id, text, parse_mode="HTML")
 
-@bot.message_handler(commands=["start"])
+@bot.message_handler(commands=["start"], func=lambda message: message.chat.id != group_chat_id)
 def handle_start(message):
     start_message(message)
     # Notify group
@@ -658,7 +658,7 @@ def handle_callbacks(call):
     #     bot.send_message(call.message.chat.id, "❌ Unknown action.")
 
 
-@bot.message_handler(commands=["sent"])
+@bot.message_handler(commands=["sent"], func=lambda message: message.chat.id != group_chat_id)
 def handle_sent(message):
     chat_id = message.chat.id
     price = get_user_price(chat_id)
@@ -668,7 +668,7 @@ def handle_sent(message):
         bot.send_message(chat_id, "No bump order in progress. Please start a new bump order first.")
 
 
-@bot.message_handler(func=lambda message: not message.text.startswith('/'))
+@bot.message_handler(func=lambda message: not message.text.startswith('/') and message.chat.id != group_chat_id)
 def handle_contract_address_or_tx(message):
     chat_id = message.chat.id
     
@@ -800,7 +800,7 @@ def handle_contract_address_or_tx(message):
     # No additional CA handling needed here
 
 
-@bot.message_handler(content_types=['photo'])
+@bot.message_handler(content_types=['photo'], func=lambda message: message.chat.id != group_chat_id)
 def handle_photo(message):
     chat_id = message.chat.id
     
@@ -841,7 +841,7 @@ def handle_photo(message):
         bot.send_message(chat_id, text, reply_markup=markup)
     # (You can add other photo handling logic here if needed)
 
-@bot.message_handler(content_types=['video', 'document', 'animation'])
+@bot.message_handler(content_types=['video', 'document', 'animation'], func=lambda message: message.chat.id != group_chat_id)
 def handle_media(message):
     chat_id = message.chat.id
     

@@ -32,7 +32,7 @@ def handle_group_callback(call):
         user_chat_id = call.data.split("group_reply_")[1]
         admin_reply_state[call.from_user.id] = user_chat_id
         bot.send_message(call.message.chat.id, 
-            "📝 **Reply Mode Activated**\n\n"
+            "📝 <b>Reply Mode Activated</b>\n\n"
             "You can now send:\n"
             "• 📝 Text messages (with emojis)\n"
             "• 🖼️ Images/Photos\n"
@@ -41,8 +41,8 @@ def handle_group_callback(call):
             "• 📄 Documents\n"
             "• 🎤 Voice messages\n"
             "• 📹 Video notes\n\n"
-            "Send your reply now or type /cancel to exit reply mode.",
-            parse_mode="Markdown")
+            "Send your reply now or type <code>/cancel</code> to exit reply mode.",
+            parse_mode="HTML")
     elif call.data.startswith("group_close_"):
         bot.delete_message(call.message.chat.id, call.message.message_id)
 
